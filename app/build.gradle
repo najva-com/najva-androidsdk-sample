@@ -28,5 +28,5 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
-    implementation 'com.najva.sdk:najva-android-sdk:1.1.1'
+    implementation 'com.najva.sdk:najva-android-sdk:1.1.4'
 }

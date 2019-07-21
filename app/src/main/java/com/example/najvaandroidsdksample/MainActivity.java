@@ -21,9 +21,9 @@ public class MainActivity extends AppCompatActivity {
         int campaignId = 1247756; // Available in the panel
         int websitenId = 6087;// Available in the panel
         String apiKey = "4647ae37-f35b-40fe-94d7-c27dea3b366e";// Available in the panel
-        boolean isLocationEnable = true;// set true to get location of user
 
-        Najva.initialize(this, campaignId, websitenId, apiKey, isLocationEnable);
+
+        Najva.initialize(this, campaignId, websitenId, apiKey);
 
         Najva.setUserHandler(new NajvaUserHandler(){
             @Override
@@ -34,13 +34,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Najva.setJsonDataListener(new NajvaJsonDataListener() {
-            @Override
-            public void onReceiveJson(String jsonString) {
-                Log.i(TAG, "onReceiveJson: " + jsonString);
 
-                // handel data
-            }
-        });
     }
 }
