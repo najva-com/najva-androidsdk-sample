@@ -1,15 +1,19 @@
-# Android Studio Sample App
+# najva Android Studio Application
 
-This is a `Android Studio` Application that implemented `NajvaSDK` in it.
-you can clone this project and test push notification from [Najva Panel](https://www.najva.com).
+This is an application that implemented by Android Studio and `NajvaSDK` has been used in it.
 
-### Implementation guide
+### Test Najva Service 
+If you want test `Najva Push Notification Service` in `android` application you should:
+1.  Clone this project and rename package name of it.
+this [link](https://stackoverflow.com/questions/16804093/rename-package-in-android-studio) can be useful.
 
-clone this project and run it in a device.
-now you can test push notification from `Demo Acount`.
+2.  Register this app after login in [najva panel](https://app.najva.com/accounts/login/?next=/).(to register any app, its package name must be unique!)
 
-### Implementation Manual
+3.  After register najva panel gives you `campaignId`,`websiteId`,`apiKey` which is specific to your app
 
-If you want to register this app as your application you must change package name of this project
+4.  Go to `MainActivity.java` and put this parameters to `initialize` method that looks like the following:
+```
+Najva.initialize(this, YOUR_CAMPAIGN_ID_GOES_HERE, YOUR_WEBSITE_ID_GOES_HERE, YOUR_API_KEY_GOES_HERE);
+```
 
-this [link](https://stackoverflow.com/questions/16804093/rename-package-in-android-studio) can be useful
+5.  Now you can run application and send notification from your panel to it!
