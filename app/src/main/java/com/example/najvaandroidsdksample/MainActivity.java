@@ -18,12 +18,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
-        int campaignId = 1247756; // Available in the panel
-        int websitenId = 6087;// Available in the panel
-        String apiKey = "4647ae37-f35b-40fe-94d7-c27dea3b366e";// Available in the panel
 
-
-        Najva.initialize(this, campaignId, websitenId, apiKey);
+        Najva.initialize(this, YOUR_CAMPAIGN_ID_GOES_HERE, YOUR_WEBSITE_ID_GOES_HERE, YOUR_API_KEY_GOES_HERE);
 
         Najva.setUserHandler(new NajvaUserHandler(){
             @Override
