@@ -11,7 +11,7 @@ this [link](https://stackoverflow.com/questions/16804093/rename-package-in-andro
 
 3.  After register najva panel gives you `campaignId`,`websiteId`,`apiKey` which is specific to your app
 
-4.  Go to `MainActivity.java` and put this parameters to `initialize` method that looks like the following:
+4.  Go to `MainActivity.java` and put this parameters in `initialize` method that looks like the following:
 ```
 Najva.initialize(this, YOUR_CAMPAIGN_ID_GOES_HERE, YOUR_WEBSITE_ID_GOES_HERE, YOUR_API_KEY_GOES_HERE);
 ```
