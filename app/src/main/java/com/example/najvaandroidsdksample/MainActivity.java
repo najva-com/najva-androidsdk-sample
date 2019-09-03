@@ -4,9 +4,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.najva.najvasdk.Class.Najva;
-import com.najva.najvasdk.Class.NajvaJsonDataListener;
-import com.najva.najvasdk.Class.NajvaUserHandler;
+import com.najva.sdk.Najva;
+import com.najva.sdk.NajvaJsonDataListener;
+import com.najva.sdk.UserSubscriptionListener;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -17,19 +17,22 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-
-        Najva.initialize(this, YOUR_CAMPAIGN_ID_GOES_HERE, YOUR_WEBSITE_ID_GOES_HERE, YOUR_API_KEY_GOES_HERE);
-
-        Najva.setUserHandler(new NajvaUserHandler(){
+        Najva.initialize(this);
+        Najva.setUserSubscriptionListener(new UserSubscriptionListener() {
             @Override
-            public void najvaUserSubscribed(String token) {
-                Log.i(TAG, "najvaUserSubscribed: " + token);
+            public void onUserSubscribed(String s) {
+                Log.i(TAG, "onUserSubscribed: " + s);
+            }
+        });
+        Log.i(TAG, "onCreate: " + Najva.getSubscribedToken(this));
 
-                //handel token
+        Najva.setNajvaJsonDataListener(new NajvaJsonDataListener() {
+            @Override
+            public void onReceiveJson(String s) {
+                Log.i(TAG, "onReceiveJson: " + s);
             }
         });
 
-
+        Najva.getCachedJsonData(this);
     }
 }
