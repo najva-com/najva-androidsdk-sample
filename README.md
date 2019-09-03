@@ -9,11 +9,16 @@ this [link](https://stackoverflow.com/questions/16804093/rename-package-in-andro
 
 2.  Register this app after login in [najva panel](https://app.najva.com/accounts/login/?next=/).(to register any app, its package name must be unique!)
 
-3.  After register najva panel gives you `campaignId`,`websiteId`,`apiKey` which is specific to your app
+3.  After register najva panel gives you `websiteId`,`apiKey` which is specific to your app
 
-4.  Go to `MainActivity.java` and put this parameters in `initialize` method that looks like the following:
+4.  Go to `AndroidManifest.xml` and put this parameters in `application` tag that looks like the following:
 ```
-Najva.initialize(this, YOUR_CAMPAIGN_ID_GOES_HERE, YOUR_WEBSITE_ID_GOES_HERE, YOUR_API_KEY_GOES_HERE);
+<meta-data
+    android:name="com.najva.sdk.metadata.API_KEY"
+    android:value="[YOUR_API_KEY_GOES_HERE]" />
+<meta-data
+    android:name="com.najva.sdk.metadata.WEBSITE_ID"
+    android:value="[YOUR_WEBSITE_ID_GOES_HERE]" />
 ```
 
-5.  Now you can run application and send notification from your panel to it!
+5.  Now you can run application and send notification from your panel to it! can run application and send notification from your panel to it!
