@@ -8,9 +8,10 @@ import android.util.Log;
 import com.najva.sdk.Najva;
 
 public class NotificationEventReceiver extends BroadcastReceiver {
+    public static final String TAG = "NajvaReceiver";
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.i("NajvaReceiver", "onReceive: " + intent.getStringExtra(Najva.MESSAGE_ID));
+        Log.i(TAG, "onReceive: " + intent.getStringExtra(Najva.MESSAGE_ID));
         // You can interactive with google analytics here
     }
 }
