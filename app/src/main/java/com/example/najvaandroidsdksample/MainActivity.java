@@ -2,15 +2,23 @@ package com.example.najvaandroidsdksample;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.renderscript.Allocation;
+import android.renderscript.Element;
+import android.renderscript.RenderScript;
+import android.renderscript.ScriptIntrinsicBlur;
+import android.renderscript.Type;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.najva.sdk.Najva;
 import com.najva.sdk.NajvaJsonDataListener;
@@ -33,6 +41,13 @@ public class MainActivity extends AppCompatActivity {
 
         mMainImage = findViewById(R.id.main_image);
         mBlurImage = findViewById(R.id.blured_image);
+
+        findViewById(R.id.save).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(MainActivity.this, "Not Implemented yet.", Toast.LENGTH_LONG).show();
+            }
+        });
 
     }
 
@@ -90,39 +105,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void displayBlurredImage(Bitmap copy) {
-        float k = 1f / 9f;
-        float[] blureMatrix = {
-                1,1,1,
-                1,1,1,
-                1,1,1
-        };
-        int ksize = 3;
-
-        int width = copy.getWidth();
-        int heght = copy.getHeight();
-        int newWidth = width - ksize + 1;
-        int newHeight = heght - ksize + 1;
-        Bitmap newBitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.RGB_565);
-
-        for (int i = 0; i < newWidth - 1; i++) {
-            for (int j = 0; j < newHeight - 1; j++) {
-                int[] img = new int[ksize * ksize];
-                copy.getPixels(img, 0, ksize, i, j, ksize, ksize);
-                int res = (int) (k * caclulate(blureMatrix, img));
-                newBitmap.setPixel(i, j, res);
-            }
-        }
+        Bitmap newBitmap = blurBitmap(copy);
 
         mBlurImage.setImageBitmap(newBitmap);
 
     }
 
-    private int caclulate(float[] blureMatrix, int[] img) {
-        int sum = 0;
-        int len = blureMatrix.length;
-        for (int i = 0; i < len; i++) {
-            sum += blureMatrix[i] * img[len - i - 1];
-        }
-        return sum;
+    public Bitmap blurBitmap(Bitmap bitmap) {
+        Bitmap bmBlur;
+        Convolution convolution = new Convolution();
+
+        bmBlur = convolution.convBitmap(bitmap);
+
+        return bitmap;
     }
 }
