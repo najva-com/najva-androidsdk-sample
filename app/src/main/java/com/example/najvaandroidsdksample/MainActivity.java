@@ -1,38 +1,128 @@
 package com.example.najvaandroidsdksample;
 
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.ImageView;
 
 import com.najva.sdk.Najva;
 import com.najva.sdk.NajvaJsonDataListener;
 import com.najva.sdk.UserSubscriptionListener;
 
+import java.io.IOException;
+
 public class MainActivity extends AppCompatActivity {
 
-    public static final String TAG = "MAIN_ACTIVITY";
+    public static final String TAG = "MainActivity";
+    public static final int PICK_IMAGE = 1;
+
+    ImageView mMainImage;
+    ImageView mBlurImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Najva.initialize(this);
-        Najva.setUserSubscriptionListener(new UserSubscriptionListener() {
-            @Override
-            public void onUserSubscribed(String s) {
-                Log.i(TAG, "onUserSubscribed: " + s);
-            }
-        });
-        Log.i(TAG, "onCreate: " + Najva.getSubscribedToken(this));
+        mMainImage = findViewById(R.id.main_image);
+        mBlurImage = findViewById(R.id.blured_image);
 
-        Najva.setNajvaJsonDataListener(new NajvaJsonDataListener() {
-            @Override
-            public void onReceiveJson(String s) {
-                Log.i(TAG, "onReceiveJson: " + s);
-            }
-        });
+    }
 
-        Najva.getCachedJsonData(this);
+    private void selectImage() {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setDataAndType(MediaStore.Images.Media.INTERNAL_CONTENT_URI, "image/*");
+        intent.putExtra("return-data", true);
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.pick) {
+            selectImage();
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PICK_IMAGE) {
+            Uri uri = data.getData();
+            if (uri != null) {
+                Bitmap bitmap = uriToBitmap(uri);
+                handleBitmap(bitmap);
+            } else {
+                Log.d(TAG, "onActivityResult: uri is null");
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private Bitmap uriToBitmap(Uri uri) {
+        try {
+            return MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private void handleBitmap(Bitmap bitmap) {
+        mMainImage.setImageBitmap(bitmap);
+        Bitmap copy = bitmap.copy(Bitmap.Config.RGB_565, true);
+        displayBlurredImage(copy);
+    }
+
+    private void displayBlurredImage(Bitmap copy) {
+        float k = 1f / 9f;
+        float[] blureMatrix = {
+                1,1,1,
+                1,1,1,
+                1,1,1
+        };
+        int ksize = 3;
+
+        int width = copy.getWidth();
+        int heght = copy.getHeight();
+        int newWidth = width - ksize + 1;
+        int newHeight = heght - ksize + 1;
+        Bitmap newBitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.RGB_565);
+
+        for (int i = 0; i < newWidth - 1; i++) {
+            for (int j = 0; j < newHeight - 1; j++) {
+                int[] img = new int[ksize * ksize];
+                copy.getPixels(img, 0, ksize, i, j, ksize, ksize);
+                int res = (int) (k * caclulate(blureMatrix, img));
+                newBitmap.setPixel(i, j, res);
+            }
+        }
+
+        mBlurImage.setImageBitmap(newBitmap);
+
+    }
+
+    private int caclulate(float[] blureMatrix, int[] img) {
+        int sum = 0;
+        int len = blureMatrix.length;
+        for (int i = 0; i < len; i++) {
+            sum += blureMatrix[i] * img[len - i - 1];
+        }
+        return sum;
     }
 }

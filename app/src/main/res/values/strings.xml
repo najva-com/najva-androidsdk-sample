@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">NajvaAndroidSdkSample</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">save</string>
+    <string name="select_image">Select Image</string>
 </resources>
