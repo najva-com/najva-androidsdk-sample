@@ -101,22 +101,20 @@ public class MainActivity extends AppCompatActivity {
     private void handleBitmap(Bitmap bitmap) {
         mMainImage.setImageBitmap(bitmap);
         Bitmap copy = bitmap.copy(Bitmap.Config.RGB_565, true);
-        displayBlurredImage(copy);
+        blurBitmap(copy);
     }
 
-    private void displayBlurredImage(Bitmap copy) {
-        Bitmap newBitmap = blurBitmap(copy);
 
-        mBlurImage.setImageBitmap(newBitmap);
+    public void blurBitmap(Bitmap bitmap) {
+        final ProgressDialog dialog = new ProgressDialog(this);
+        dialog.show();
+        new Convolution(new Convolution.OnBitmapReadyListener() {
+            @Override
+            public void onBitmapReady(Bitmap bluredBitmap) {
+                mBlurImage.setImageBitmap(bluredBitmap);
+                dialog.dismiss();
+            }
+        }).execute(bitmap);
 
-    }
-
-    public Bitmap blurBitmap(Bitmap bitmap) {
-        Bitmap bmBlur;
-        Convolution convolution = new Convolution();
-
-        bmBlur = convolution.convBitmap(bitmap);
-
-        return bitmap;
     }
 }

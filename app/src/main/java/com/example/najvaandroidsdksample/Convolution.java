@@ -2,8 +2,16 @@ package com.example.najvaandroidsdksample;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.os.AsyncTask;
 
-class Convolution {
+class Convolution extends AsyncTask<Bitmap, Void, Bitmap> {
+
+    private OnBitmapReadyListener listener;
+
+    public Convolution(OnBitmapReadyListener listener) {
+
+        this.listener = listener;
+    }
 
     // matrix to blur image
     int[][] matrix = {{1, 4, 6, 4, 1},
@@ -11,36 +19,50 @@ class Convolution {
             {6, 24, 36, 24, 6},
             {4, 16, 24, 16, 1},
             {1, 4, 6, 4, 1}};
-    // kernal_width x kernal_height = dimension pf matrix
-    // halfWidth = (kernal_width - 1)/2
-    // halfHeight = (kernal_height - 1)/2
-    int kernal_width = 5;
-    int kernal_height = 5;
-    int kernal_halfWidth = 2;
-    int kernal_halfHeight = 2;
+    // kernel_width x kernel_height = dimension pf matrix
+    // halfWidth = (kernel_width - 1)/2
+    // halfHeight = (kernel_height - 1)/2
+    int kernel_width = 5;
+    int kernel_height = 5;
+    int kernel_halfWidth = 2;
+    int kernel_halfHeight = 2;
 
     public Bitmap convBitmap(Bitmap src) {
 
-        int[][] sourceMatrix = new int[kernal_width][kernal_height];
+        int[][] sourceMatrix = new int[kernel_width][kernel_height];
 
         // averageWeight = total of matrix[][]. The result of each
         // pixel will be divided by averageWeight to get the average
-        float averageWeight = 1f / 256f;
+        float averageWeight = 256;
+
+        Bitmap scaledBitmap;
+        if (src.getWidth()>200) {
+            float scale = ((float) src.getWidth()) / 200f;
+
+
+            scaledBitmap = Bitmap.createScaledBitmap(src, 200, (int) (src.getHeight() / scale), true);
+            src.recycle();
+        } else {
+            scaledBitmap = src;
+        }
 
         int pixelR, pixelG, pixelB, pixelA;
 
-        int w = src.getWidth();
-        int h = src.getHeight();
+        int w = scaledBitmap.getWidth();
+        int h = scaledBitmap.getHeight();
         Bitmap bm = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+
+        int step = 2;
 
         // fill sourceMatrix with surrounding pixel
         for (int x = 0; x < w; x++) {
             for (int y = 0; y < h; y++) {
 
-                for (int xk = 0; xk < kernal_width; xk++) {
-                    for (int yk = 0; yk < kernal_height; yk++) {
-                        int px = x + xk - kernal_halfWidth;
-                        int py = y + yk - kernal_halfHeight;
+                for (int xk = 0; xk < kernel_width; xk++) {
+                    for (int yk = 0; yk < kernel_height; yk++) {
+
+                        int px = x + xk - kernel_halfWidth;
+                        int py = y + yk - kernel_halfHeight;
 
                         if (px < 0) {
                             px = 0;
@@ -54,15 +76,15 @@ class Convolution {
                             py = h - 1;
                         }
 
-                        sourceMatrix[xk][yk] = src.getPixel(px, py);
+                        sourceMatrix[xk][yk] = scaledBitmap.getPixel(px, py);
 
                     }
                 }
 
                 pixelR = pixelG = pixelB = pixelA = 0;
 
-                for (int k = 0; k < kernal_width; k++) {
-                    for (int l = 0; l < kernal_height; l++) {
+                for (int k = 0; k < kernel_width; k++) {
+                    for (int l = 0; l < kernel_height; l++) {
 
                         pixelR += Color.red(sourceMatrix[k][l])
                                 * matrix[k][l];
@@ -74,10 +96,10 @@ class Convolution {
                                 * matrix[k][l];
                     }
                 }
-                pixelR = (int) (pixelR * averageWeight);
-                pixelG = (int) (pixelG * averageWeight);
-                pixelB = (int) (pixelB * averageWeight);
-                pixelA = (int) (pixelA * averageWeight);
+                pixelR = (int) (pixelR / averageWeight);
+                pixelG = (int) (pixelG / averageWeight);
+                pixelB = (int) (pixelB / averageWeight);
+                pixelA = (int) (pixelA / averageWeight);
 
                 if (pixelR < 0) {
                     pixelR = 0;
@@ -108,6 +130,24 @@ class Convolution {
             }
         }
 
+        scaledBitmap.recycle();
+
         return bm;
+    }
+
+    @Override
+    protected Bitmap doInBackground(Bitmap... bitmaps) {
+        if (bitmaps.length == 0) return null;
+        return convBitmap(bitmaps[0]);
+    }
+
+    @Override
+    protected void onPostExecute(Bitmap bitmap) {
+        if (bitmap != null)
+            listener.onBitmapReady(bitmap);
+    }
+
+    interface OnBitmapReadyListener {
+        void onBitmapReady(Bitmap bitmap);
     }
 }
