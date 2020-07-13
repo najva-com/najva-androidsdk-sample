@@ -39,11 +39,13 @@ public class Application extends android.app.Application {
         NajvaClient client = new NajvaClient(this, configuration);
         client.getCachedJsonData();
 
+
         registerActivityLifecycleCallbacks(client);
 
         if (shouldUpdateToken()) {
             sendTokenToServer(client.getSubscribedToken());
         }
+
     }
 
     private void displayDialog(String jsonString) {
