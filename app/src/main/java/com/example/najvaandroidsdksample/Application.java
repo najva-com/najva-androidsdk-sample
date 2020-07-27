@@ -23,6 +23,7 @@ public class Application extends android.app.Application {
         super.onCreate();
         NajvaConfiguration configuration = new NajvaConfiguration();
         configuration.disableLocation();
+        configuration.setFirebaseEnabled(false);
         configuration.setUserSubscriptionListener(new UserSubscriptionListener() {
             @Override
             public void onUserSubscribed(String token) {
@@ -36,8 +37,7 @@ public class Application extends android.app.Application {
             }
         });
 
-        NajvaClient client = new NajvaClient(this, configuration);
-        client.getCachedJsonData();
+        NajvaClient client = NajvaClient.getInstance(this, configuration);
 
 
         registerActivityLifecycleCallbacks(client);
