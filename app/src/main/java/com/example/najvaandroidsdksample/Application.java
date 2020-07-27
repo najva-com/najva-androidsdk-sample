@@ -12,12 +12,16 @@ import com.android.volley.toolbox.Volley;
 import com.najva.sdk.NajvaClient;
 import com.najva.sdk.NajvaConfiguration;
 import com.najva.sdk.NajvaJsonDataListener;
+import com.najva.sdk.NotificationClickListener;
+import com.najva.sdk.NotificationReceiveListener;
 import com.najva.sdk.UserSubscriptionListener;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class Application extends android.app.Application {
+    private static String TAG = "Application";
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -30,10 +34,18 @@ public class Application extends android.app.Application {
                 sendTokenToServer(token);
             }
         });
-        configuration.setNajvaJsonDataListener(new NajvaJsonDataListener() {
+        configuration.setNotificationClickListener(new NotificationClickListener() {
             @Override
-            public void onReceiveJson(String jsonString) {
-                displayDialog(jsonString);
+            public void onClickNotification(String notificationId, int buttonId) {
+                Log.d(TAG, "onClickNotification: " + notificationId);
+                Log.d(TAG, "onClickNotification: " + buttonId);
+            }
+        });
+
+        configuration.setReceiveNotificationListener(new NotificationReceiveListener() {
+            @Override
+            public void onReceiveNotification(String notificationId) {
+                Log.d(TAG, "onReceiveNotification: " + notificationId);
             }
         });
 

@@ -15,23 +15,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <receiver
-            android:name=".ClickEventReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.najva.sdk.Najva.ACTION_CLICK_RECEIVED" />
-            </intent-filter>
-
-        </receiver>
-        <receiver
-            android:name=".NotificationEventReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.najva.sdk.Najva.ACTION_NOTIFICATION_RECEIVED" />
-            </intent-filter>
-        </receiver>
 
         <activity android:name=".MainActivity">
             <intent-filter>
