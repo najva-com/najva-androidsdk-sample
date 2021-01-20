@@ -26,10 +26,10 @@
 
         <meta-data
             android:name="com.najva.sdk.metadata.API_KEY"
-            android:value="4647ae37-f35b-40fe-94d7-c27dea3b366e" />
+            android:value="8b84ad3a-3daa-4520-9adc-d7528ea95a54" />
         <meta-data
             android:name="com.najva.sdk.metadata.WEBSITE_ID"
-            android:value="6087" />
+            android:value="12383" />
     </application>
 
 </manifest>

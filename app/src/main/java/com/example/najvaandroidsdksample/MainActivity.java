@@ -1,120 +1,238 @@
 package com.example.najvaandroidsdksample;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.RemoteInput;
 
-import android.content.Context;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
-import android.renderscript.Allocation;
-import android.renderscript.Element;
-import android.renderscript.RenderScript;
-import android.renderscript.ScriptIntrinsicBlur;
-import android.renderscript.Type;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.Toast;
+import android.os.StrictMode;
 
-import com.najva.sdk.Najva;
-import com.najva.sdk.NajvaJsonDataListener;
+import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.najva.sdk.NajvaClient;
 import com.najva.sdk.UserSubscriptionListener;
 
-import java.io.IOException;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = "MainActivity";
-    public static final int PICK_IMAGE = 1;
 
-    ImageView mMainImage;
-    ImageView mBlurImage;
+
+    int id = 10;
+    NotificationManager manager;
+
+    Application getNajvaApplication() {
+        return (Application) getApplication();
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
 
-        mMainImage = findViewById(R.id.main_image);
-        mBlurImage = findViewById(R.id.blured_image);
-
-        findViewById(R.id.save).setOnClickListener(new View.OnClickListener() {
+        NajvaClient.configuration.setUserSubscriptionListener(new UserSubscriptionListener() {
             @Override
-            public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "Not Implemented yet.", Toast.LENGTH_LONG).show();
+            public void onUserSubscribed(String token) {
+                TextView tv = findViewById(R.id.textToken);
+                tv.setText(NajvaClient.getInstance().getSubscribedToken());
             }
         });
 
+        manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        TextView tv = findViewById(R.id.textToken);
+        tv.setText(NajvaClient.getInstance().getSubscribedToken());
+
     }
 
-    private void selectImage() {
-        Intent intent = new Intent(Intent.ACTION_PICK);
-        intent.setDataAndType(MediaStore.Images.Media.INTERNAL_CONTENT_URI, "image/*");
-        intent.putExtra("return-data", true);
-        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE);
+    public Map<String, Object> getBasicData() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("title", "title 2");
+        map.put("body", "this is some description");
+        map.put("onclick_action", "open-app");
+        map.put("api_key", "8b84ad3a-3daa-4520-9adc-d7528ea95a54");
+        map.put("url", "https://najva.com");
+
+        JSONArray array = new JSONArray();
+        array.put(NajvaClient.getInstance().getSubscribedToken());
+        map.put("subscriber_tokens", array);
+
+        return map;
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
+    public Map<String, String> getHeaders() {
+        Map<String, String> map = new HashMap<>();
+        map.put("Authorization", "Token aff3c68af97bf4608fdf28673ca26201ca027ed9");
+        return map;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.pick) {
-            selectImage();
-            return true;
-        } else {
-            return super.onOptionsItemSelected(item);
-        }
-    }
+    public void notificationLowPriority(View view) {
+        Map<String, Object> data = getBasicData();
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == PICK_IMAGE) {
-            Uri uri = data.getData();
-            if (uri != null) {
-                Bitmap bitmap = uriToBitmap(uri);
-                handleBitmap(bitmap);
-            } else {
-                Log.d(TAG, "onActivityResult: uri is null");
-            }
-        } else {
-            super.onActivityResult(requestCode, resultCode, data);
-        }
-    }
+        data.put("priority", "normal");
 
-    private Bitmap uriToBitmap(Uri uri) {
-        try {
-            return MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+        JsonObjectRequest request = new JsonObjectRequest(
+                "https://app.najva.com/notification/api/v1/notifications/",
+                (JSONObject) JSONObject.wrap(data),
+                new Response.Listener<JSONObject>() {
 
-    private void handleBitmap(Bitmap bitmap) {
-        mMainImage.setImageBitmap(bitmap);
-        Bitmap copy = bitmap.copy(Bitmap.Config.RGB_565, true);
-        blurBitmap(copy);
-    }
+                    @Override
+                    public void onResponse(JSONObject response) {
 
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
 
-    public void blurBitmap(Bitmap bitmap) {
-        final ProgressDialog dialog = new ProgressDialog(this);
-        dialog.show();
-        new Convolution(new Convolution.OnBitmapReadyListener() {
+                    }
+                }
+        ) {
             @Override
-            public void onBitmapReady(Bitmap bluredBitmap) {
-                mBlurImage.setImageBitmap(bluredBitmap);
-                dialog.dismiss();
+            public Map<String, String> getHeaders() {
+                return MainActivity.this.getHeaders();
             }
-        }).execute(bitmap);
+        };
+        Volley.newRequestQueue(this).add(request);
+    }
+
+    public void notificationHighPriority(View view) {
+        Map<String, Object> data = getBasicData();
+        data.put("priority", "high");
+        Log.d("NotificationData", data.toString());
+        JsonObjectRequest request = new JsonObjectRequest(
+                "https://app.najva.com/notification/api/v1/notifications/",
+                (JSONObject) JSONObject.wrap(data),
+                new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                return MainActivity.this.getHeaders();
+            }
+        };
+        Volley.newRequestQueue(this).add(request);
+    }
+
+    public void notificationIcon(View view) {
+        Map<String, Object> data = getBasicData();
+        data.put("priority", "high");
+        data.put("icon", "https://doc.najva.com/img/najva.png");
+        JsonObjectRequest request = new JsonObjectRequest(
+                "https://app.najva.com/notification/api/v1/notifications/",
+                (JSONObject) JSONObject.wrap(data),
+                new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                return MainActivity.this.getHeaders();
+            }
+        };
+        Volley.newRequestQueue(this).add(request);
+    }
+
+    public void notificationImage(View view) {
+        Map<String, Object> data = getBasicData();
+        data.put("priority", "high");
+        data.put("icon", "https://doc.najva.com/img/najva.png");
+        data.put("image", "https://doc.najva.com/img/najva.png");
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                "https://app.najva.com/notification/api/v1/notifications/",
+                (JSONObject) JSONObject.wrap(data),
+                new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                return MainActivity.this.getHeaders();
+            }
+        };
+        Volley.newRequestQueue(this).add(request);
+    }
+
+    public void notificationBigText(View view) {
+        Map<String, Object> data = getBasicData();
+        data.put("priority", "high");
+        data.put("body", "this is some very very long description that we hope it'll be displayed well in the notification bar in every android device :)");
+        JsonObjectRequest request = new JsonObjectRequest(
+                "https://app.najva.com/notification/api/v1/notifications/",
+                (JSONObject) JSONObject.wrap(data),
+                new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                return MainActivity.this.getHeaders();
+            }
+        };
+        Volley.newRequestQueue(this).add(request);
 
     }
 }

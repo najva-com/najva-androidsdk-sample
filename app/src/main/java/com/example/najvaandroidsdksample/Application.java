@@ -1,23 +1,18 @@
 package com.example.najvaandroidsdksample;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.media.RingtoneManager;
+import android.os.Build;
 import android.util.Log;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
+import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
+
 import com.najva.sdk.NajvaClient;
 import com.najva.sdk.NajvaConfiguration;
-import com.najva.sdk.NajvaJsonDataListener;
 import com.najva.sdk.NotificationClickListener;
 import com.najva.sdk.NotificationReceiveListener;
-import com.najva.sdk.UserSubscriptionListener;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class Application extends android.app.Application {
     private static String TAG = "Application";
@@ -28,15 +23,9 @@ public class Application extends android.app.Application {
         NajvaConfiguration configuration = new NajvaConfiguration();
         configuration.disableLocation();
         configuration.setFirebaseEnabled(false);
-        configuration.setUserSubscriptionListener(new UserSubscriptionListener() {
-            @Override
-            public void onUserSubscribed(String token) {
-                sendTokenToServer(token);
-            }
-        });
         configuration.setNotificationClickListener(new NotificationClickListener() {
             @Override
-            public void onClickNotification(String notificationId, int buttonId) {
+            public void onClickNotification(String notificationId, String buttonId) {
                 Log.d(TAG, "onClickNotification: " + notificationId);
                 Log.d(TAG, "onClickNotification: " + buttonId);
             }
@@ -49,57 +38,29 @@ public class Application extends android.app.Application {
             }
         });
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createNotificationChannel("news", "News", NotificationCompat.PRIORITY_HIGH);
+            createNotificationChannel("updates","Updates", NotificationCompat.PRIORITY_DEFAULT);
+        }
+
+
+
         NajvaClient client = NajvaClient.getInstance(this, configuration);
 
 
         registerActivityLifecycleCallbacks(client);
-
-        if (shouldUpdateToken()) {
-            sendTokenToServer(client.getSubscribedToken());
-        }
-
     }
 
-    private void displayDialog(String jsonString) {
-        new JsonDialog(this, jsonString).show();
-    }
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void createNotificationChannel(String id, String name, int importance){
+        NotificationChannel channel = new NotificationChannel(id, name, importance);
+        channel.enableLights(true);
+        channel.enableVibration(true);
+        channel.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),null);
+        channel.setShowBadge(true);
+        channel.setBypassDnd(false);
 
-    private boolean shouldUpdateToken() {
-        return getSharedPreferences("app", MODE_PRIVATE).getBoolean("update_token", false);
-    }
-
-    private void sendTokenToServer(String token) {
-        if (token == null) return;
-
-        String url = "https://google.com/generate_201";
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
-        final Map<String, String> post = new HashMap<>();
-        post.put("token", token);
-        requestQueue.add(new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Log.d("Application", "token registered to server");
-                disableUpdateToken();
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d("Application", "error registering token to server");
-                setUpdateTokenNextLaunch();
-            }
-        }) {
-            @Override
-            protected Map<String, String> getParams() {
-                return post;
-            }
-        });
-    }
-
-    private void disableUpdateToken() {
-        getSharedPreferences("app", MODE_PRIVATE).edit().putBoolean("update_token", false).apply();
-    }
-
-    private void setUpdateTokenNextLaunch() {
-        getSharedPreferences("app", MODE_PRIVATE).edit().putBoolean("update_token", true).apply();
+        NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        manager.createNotificationChannel(channel);
     }
 }
