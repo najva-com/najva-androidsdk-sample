@@ -9,6 +9,7 @@ import android.util.Log;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
+import com.najva.sdk.Najva;
 import com.najva.sdk.NajvaClient;
 import com.najva.sdk.NajvaConfiguration;
 import com.najva.sdk.NotificationClickListener;
@@ -20,35 +21,11 @@ public class Application extends android.app.Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        NajvaConfiguration configuration = new NajvaConfiguration();
-        configuration.disableLocation();
-        configuration.setFirebaseEnabled(false);
-        configuration.setNotificationClickListener(new NotificationClickListener() {
-            @Override
-            public void onClickNotification(String notificationId, String buttonId) {
-                Log.d(TAG, "onClickNotification: " + notificationId);
-                Log.d(TAG, "onClickNotification: " + buttonId);
-            }
-        });
 
-        configuration.setReceiveNotificationListener(new NotificationReceiveListener() {
-            @Override
-            public void onReceiveNotification(String notificationId) {
-                Log.d(TAG, "onReceiveNotification: " + notificationId);
-            }
-        });
+        NajvaClient.getInstance().setLogEnabled(true);
+        NajvaClient.configuration.setNotificationClickListener(s -> Log.d(TAG, "onClickNotification: " + s));
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            createNotificationChannel("news", "News", NotificationCompat.PRIORITY_HIGH);
-            createNotificationChannel("updates","Updates", NotificationCompat.PRIORITY_DEFAULT);
-        }
-
-
-
-        NajvaClient client = NajvaClient.getInstance(this, configuration);
-
-
-        registerActivityLifecycleCallbacks(client);
+        NajvaClient.configuration.setReceiveNotificationListener(notificationId -> Log.d(TAG, "onReceiveNotification: " + notificationId));
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
